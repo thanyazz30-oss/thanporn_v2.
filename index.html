@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ตารางออกหน่วย — ธัญพรกายภาพบำบัด</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f0ede8;color:#1a1a1a;min-height:100vh}
+
+/* NAV */
+.nav{background:#1a3a2a;padding:0 28px;display:flex;align-items:center;gap:0}
+.nav-brand{color:#fff;font-size:15px;font-weight:600;padding:14px 0;margin-right:24px;white-space:nowrap}
+.nav-tab{
+  color:#a0c4a8;font-size:14px;padding:14px 18px;cursor:pointer;
+  border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap
+}
+.nav-tab:hover{color:#fff}
+.nav-tab.on{color:#fff;border-bottom-color:#6fcf8a}
+
+/* PAGE */
+.page{max-width:960px;margin:0 auto;padding:28px 20px}
+
+/* CARD */
+.card{background:#fff;border-radius:12px;padding:24px;border:1px solid #e0ddd8;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;color:#1a3a2a;margin-bottom:18px}
+
+/* FORM */
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.frow-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.ffull{grid-column:1/-1}
+.flabel{font-size:12px;color:#777;display:block;margin-bottom:5px;font-weight:500}
+input[type=text],input[type=date],select{
+  width:100%;border:1.5px solid #e0ddd8;border-radius:8px;
+  padding:9px 12px;font-family:'Sarabun',sans-serif;font-size:14px;
+  color:#1a1a1a;background:#faf9f7;transition:border-color .15s
+}
+input:focus,select:focus{outline:none;border-color:#3a7a4a}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative}
+.ac-drop{
+  display:none;position:absolute;top:calc(100% - 1px);left:0;right:0;z-index:50;
+  background:#fff;border:1.5px solid #3a7a4a;border-top:none;
+  border-radius:0 0 8px 8px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.08)
+}
+.ac-drop.show{display:block}
+.ac-item{
+  padding:8px 12px;font-size:14px;font-family:'Sarabun',sans-serif;
+  cursor:pointer;border-bottom:.5px solid #f0ede8
+}
+.ac-item:last-child{border:none}
+.ac-item:hover,.ac-item.hi{background:#eaf4ec;color:#1a3a2a}
+
+/* WHO BOX */
+.who-box{
+  display:flex;align-items:center;gap:12px;
+  background:#f5f3ef;border-radius:10px;padding:11px 15px;margin-bottom:16px
+}
+.avatar{
+  width:38px;height:38px;border-radius:50%;background:#1a3a2a;
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;flex-shrink:0
+}
+.who-info{flex:1}
+.who-name{font-size:15px;font-weight:600;color:#1a3a2a}
+.who-area{font-size:11px;color:#3a7a4a;margin-top:2px}
+.who-change{font-size:13px;color:#3a7a4a;cursor:pointer;text-decoration:underline}
+
+/* DISEASE CARDS */
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.dcard{
+  border:1.5px solid #e0ddd8;border-radius:10px;padding:10px 13px;
+  cursor:pointer;transition:all .15s;background:#faf9f7
+}
+.dcard:hover{border-color:#3a7a4a}
+.dcard.on{border-color:#1a3a2a;background:#eaf4ec}
+.dcard .dt{font-size:13px;font-weight:600}
+.dcard.on .dt{color:#1a3a2a}
+.dcard .ds{font-size:11px;color:#aaa;margin-top:2px}
+
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tag{
+  padding:5px 12px;border-radius:20px;font-size:13px;cursor:pointer;
+  border:1px solid #ddd;background:#f5f3ef;color:#555;transition:all .15s
+}
+.tag:hover{border-color:#3a7a4a}
+.tag.on{background:#1a3a2a;border-color:#1a3a2a;color:#fff}
+
+/* BUTTONS */
+.btn{
+  padding:10px 20px;border-radius:8px;border:1.5px solid #ddd;
+  background:#fff;cursor:pointer;font-family:'Sarabun',sans-serif;
+  font-size:14px;font-weight:500;transition:all .15s
+}
+.btn:hover{background:#f5f5f5}
+.btn-green{background:#1a3a2a;border-color:#1a3a2a;color:#fff}
+.btn-green:hover{background:#2a5a3a}
+.btn-green:disabled{background:#aaa;border-color:#aaa;cursor:not-allowed}
+.btn-outline{border-color:#3a7a4a;color:#3a7a4a}
+.btn-outline:hover{background:#eaf4ec}
+.btn-pdf{background:#c0392b;border-color:#c0392b;color:#fff}
+.btn-pdf:hover{background:#a93226}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1a3a2a;color:#fff;padding:11px 22px;border-radius:10px;
+  font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap
+}
+.toast.show{opacity:1}
+.toast.err{background:#b91c1c}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:320px;max-width:90vw}
+.modal h3{font-size:15px;font-weight:600;color:#1a3a2a;margin-bottom:14px}
+.name-list{display:flex;flex-direction:column;gap:7px}
+.name-opt{
+  padding:10px 13px;border-radius:8px;border:1.5px solid #e0ddd8;
+  cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;
+  background:#faf9f7;text-align:left;transition:all .15s
+}
+.name-opt:hover{border-color:#3a7a4a;background:#eaf4ec;color:#1a3a2a}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px}
+.stat{background:#faf9f7;border:1px solid #e0ddd8;border-radius:10px;padding:12px;text-align:center}
+.stat .n{font-size:24px;font-weight:700;color:#1a3a2a}
+.stat .l{font-size:11px;color:#888;margin-top:2px}
+
+/* TABLE */
+.tbl-wrap{border:1px solid #e0ddd8;border-radius:10px;overflow:hidden}
+.tbl-head{display:grid;grid-template-columns:2fr 1fr 1.4fr 1.2fr;background:#f5f3ef;border-bottom:1.5px solid #e0ddd8}
+.tbl-row{display:grid;grid-template-columns:2fr 1fr 1.4fr 1.2fr;border-bottom:.5px solid #eee}
+.tbl-row:last-child{border:none}
+.tbl-row:hover{background:#faf9f7}
+.th{padding:8px 12px;font-size:12px;font-weight:600;color:#888}
+.td{padding:9px 12px;font-size:13px}
+.td-name{font-weight:500}
+.td-sub{font-size:11px;color:#aaa;margin-top:2px}
+.empty{padding:32px;text-align:center;color:#bbb;font-size:14px}
+.loading{padding:24px;text-align:center;color:#aaa;font-size:13px}
+
+/* BADGE */
+.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-stroke{background:#e8edf7;color:#1a3a6e}
+.b-brain{background:#f3eefe;color:#5e35b1}
+.b-spine{background:#fdf3e3;color:#b45309}
+.b-hip{background:#e3f5ee;color:#1b6e4a}
+
+/* FILTER */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.filter-bar select,.filter-bar input{flex:1;min-width:120px;font-size:13px;padding:8px 10px}
+
+/* HIDDEN */
+.view{display:none}
+.view.on{display:block}
+
+/* ============ PRINT / PDF ============ */
+@media print{
+  @page{size:A4 landscape;margin:12mm 14mm}
+  body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .nav,.screen-only{display:none!important}
+  .page{max-width:100%;margin:0;padding:0}
+  .card{border:none;padding:0;border-radius:0;margin:0}
+
+  /* PDF HEADER */
+  .pdf-header{display:block!important;margin-bottom:14px;border-bottom:2.5px solid #1a3a2a;padding-bottom:10px}
+  .pdf-header h2{font-size:20px;font-weight:700;color:#1a3a2a}
+  .pdf-header p{font-size:12px;color:#555;margin-top:4px}
+
+  /* summary boxes */
+  .stat-row{margin-bottom:12px}
+  .stat{border:1px solid #aaa;padding:8px}
+  .stat .n{font-size:18px}
+
+  /* table */
+  .tbl-wrap{border:1px solid #aaa;border-radius:0}
+  .tbl-head{background:#1a3a2a!important}
+  .th{color:#fff!important;padding:6px 10px;font-size:11px}
+  .td{padding:6px 10px;font-size:11px}
+  .tbl-row:nth-child(even){background:#f5f5f5}
+  .tbl-row:hover{background:inherit}
+
+  /* area sections */
+  .area-section{page-break-inside:avoid;margin-bottom:14px}
+  .area-title{font-size:13px;font-weight:700;background:#e0ede4;padding:5px 10px;border-radius:4px;margin-bottom:6px;color:#1a3a2a}
+}
+.pdf-header{display:none}
+</style>
+</head>
+<body>
+
+<!-- MODAL เลือกชื่อ -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3>เลือกชื่อของคุณ</h3>
+    <div class="name-list" id="name-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-brand">ธัญพรกายภาพบำบัด</div>
+  <div class="nav-tab on" onclick="setView('form')">บันทึกผู้ป่วย</div>
+  <div class="nav-tab" onclick="setView('export')">ส่งออก / PDF</div>
+</div>
+
+<div class="page">
+
+  <!-- ========== VIEW: FORM ========== -->
+  <div class="view on" id="view-form">
+    <div class="card">
+      <div class="card-title">บันทึกผู้ป่วยออกหน่วย</div>
+
+      <div class="who-box">
+        <div class="avatar" id="avatar">?</div>
+        <div class="who-info">
+          <div class="who-name" id="who-name">กรุณาเลือกชื่อ</div>
+          <div class="who-area" id="who-area"></div>
+        </div>
+        <span class="who-change" onclick="openModal()">เปลี่ยนชื่อ</span>
+      </div>
+
+      <div class="frow">
+        <div>
+          <label class="flabel">ชื่อ-นามสกุลผู้ป่วย *</label>
+          <div class="ac-wrap">
+            <input type="text" id="f-name" placeholder="พิมพ์ชื่อผู้ป่วย" autocomplete="off"
+              oninput="acInput()" onkeydown="acKey(event)" onfocus="acInput()" onblur="setTimeout(acHide,200)">
+            <div class="ac-drop" id="ac-drop"></div>
+          </div>
+        </div>
+        <div>
+          <label class="flabel">วันที่ออกหน่วย *</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label class="flabel" style="margin-bottom:10px">กลุ่มโรค *</label>
+        <div class="d-grid">
+          <div class="dcard" data-key="stroke" onclick="pickD(this)">
+            <div class="dt">โรคหลอดเลือดสมอง</div>
+            <div class="ds">อัมพฤกษ์ · อัมพาต · Stroke</div>
+          </div>
+          <div class="dcard" data-key="brain" onclick="pickD(this)">
+            <div class="dt">ภาวะสมองได้รับบาดเจ็บ</div>
+            <div class="ds">TBI · สมองกระทบกระเทือน</div>
+          </div>
+          <div class="dcard" data-key="spine" onclick="pickD(this)">
+            <div class="dt">ภาวะไขสันหลังได้รับบาดเจ็บ</div>
+            <div class="ds">SCI · อัมพาตท่อนล่าง</div>
+          </div>
+          <div class="dcard" data-key="hip" onclick="pickD(this)">
+            <div class="dt">ภาวะกระดูกสะโพกหัก</div>
+            <div class="ds">หลังอุบัติเหตุ · หลังผ่าตัด</div>
+          </div>
+        </div>
+        <div id="tags-wrap" style="display:none">
+          <label class="flabel" style="margin-bottom:8px">การวินิจฉัย *</label>
+          <div class="tags" id="tags-row"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-green" id="btn-save" onclick="saveRec()" style="width:100%;padding:12px;font-size:15px">
+        ⚡ บันทึกข้อมูล
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== VIEW: EXPORT ========== -->
+  <div class="view" id="view-export">
+
+    <!-- PDF HEADER (print only) -->
+    <div class="pdf-header" id="pdf-header">
+      <h2>ธัญพรกายภาพบำบัด — รายงานการออกหน่วย</h2>
+      <p id="pdf-sub"></p>
+    </div>
+
+    <!-- Filter card -->
+    <div class="card screen-only">
+      <div class="card-title">เลือกช่วงเวลาและตัวกรอง</div>
+      <div class="frow-3">
+        <div>
+          <label class="flabel">จากวันที่</label>
+          <input type="date" id="ex-from">
+        </div>
+        <div>
+          <label class="flabel">ถึงวันที่</label>
+          <input type="date" id="ex-to">
+        </div>
+        <div>
+          <label class="flabel">พื้นที่</label>
+          <select id="ex-area">
+            <option value="">ทุกพื้นที่</option>
+            <option>ราษีไศล</option>
+            <option>ขุนหาญ</option>
+            <option>กันทรลักษ์</option>
+            <option>ห้วยทับทัน</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div>
+          <label class="flabel">นักกายภาพบำบัด</label>
+          <select id="ex-pt">
+            <option value="">ทุกคน</option>
+            <option>นางธัญพร ใยดี</option>
+            <option>น.ส. ยุภาพร สิงคร</option>
+            <option>นายณรงค์กรณ์ หล้าดวงดี</option>
+            <option>นางสาวปิยะธิดา สุรนารถ</option>
+            <option>นางจุณธิดา โคลงฉันท์</option>
+            <option>น.ส. นุชราภรณ์ สุโพนอก</option>
+            <option>นายนครินทร์ แก้วบุตรดี</option>
+          </select>
+        </div>
+        <div>
+          <label class="flabel">กลุ่มโรค</label>
+          <select id="ex-d">
+            <option value="">ทุกกลุ่มโรค</option>
+            <option value="stroke">หลอดเลือดสมอง</option>
+            <option value="brain">สมองบาดเจ็บ</option>
+            <option value="spine">ไขสันหลังบาดเจ็บ</option>
+            <option value="hip">กระดูกสะโพกหัก</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="loadExport()">🔍 ดึงข้อมูล</button>
+        <button class="btn btn-pdf" onclick="doPrint()">🖨 พิมพ์ / บันทึก PDF</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row" id="ex-stats" style="display:none"></div>
+
+    <!-- Result แยกพื้นที่ -->
+    <div id="ex-body"></div>
+
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyjeHqsNt_7muCT4m48xgvUBPms_hH9OvEjKGUKBDxWHywix3QTgutmckDwG3hYchU3tQ/exec';
+
+const PT_AREA = {
+  'นางธัญพร ใยดี':'ราษีไศล',
+  'น.ส. ยุภาพร สิงคร':'ขุนหาญ',
+  'นายณรงค์กรณ์ หล้าดวงดี':'กันทรลักษ์',
+  'นางสาวปิยะธิดา สุรนารถ':'กันทรลักษ์',
+  'นางจุณธิดา โคลงฉันท์':'กันทรลักษ์',
+  'น.ส. นุชราภรณ์ สุโพนอก':'ห้วยทับทัน',
+  'นายนครินทร์ แก้วบุตรดี':'ราษีไศล'
+};
+const PTS = Object.keys(PT_AREA);
+const AREAS = ['ราษีไศล','ขุนหาญ','กันทรลักษ์','ห้วยทับทัน'];
+const DX = {
+  stroke:['อัมพฤกษ์','อัมพาต','Hemiplegia','Hemiparesis','Aphasia','Stroke ischemic','Stroke hemorrhagic'],
+  brain: ['TBI','สมองกระทบกระเทือน','สมองฟกช้ำ','Diffuse Axonal Injury'],
+  spine: ['Paraplegia','Tetraplegia','Incomplete SCI','Complete SCI'],
+  hip:   ['กระดูกสะโพกหัก','หลังผ่าตัดเปลี่ยนข้อสะโพก','ORIF สะโพก','Hip fracture']
+};
+const DL = {stroke:'หลอดเลือดสมอง',brain:'สมองบาดเจ็บ',spine:'ไขสันหลังบาดเจ็บ',hip:'กระดูกสะโพกหัก'};
+const DC = {stroke:'b-stroke',brain:'b-brain',spine:'b-spine',hip:'b-hip'};
+
+let curPt='', curD='', curTag='', acHiIdx=-1;
+
+/* ===== INIT ===== */
+function init(){
+  document.getElementById('f-date').value = today();
+  setDefaultRange();
+  const nl = document.getElementById('name-list');
+  nl.innerHTML = PTS.map(p=>`<button class="name-opt" onclick="setPt('${p}')">${p}</button>`).join('');
+  const saved = localStorage.getItem('tp_pt');
+  if(saved) setPt(saved);
+}
+
+function today(){ return new Date().toISOString().slice(0,10); }
+
+function setDefaultRange(){
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  document.getElementById('ex-from').value = new Date(y,m,1).toISOString().slice(0,10);
+  document.getElementById('ex-to').value = today();
+}
+
+/* ===== VIEWS ===== */
+function setView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+v).classList.add('on');
+  const idx = ['form','export'].indexOf(v);
+  document.querySelectorAll('.nav-tab')[idx].classList.add('on');
+}
+
+/* ===== MODAL ===== */
+function openModal(){ document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+function setPt(name){
+  curPt=name; localStorage.setItem('tp_pt',name);
+  document.getElementById('who-name').textContent = name;
+  document.getElementById('who-area').textContent = '📍 อ.'+(PT_AREA[name]||'');
+  const init = name.replace(/^(นาง|นาย|น\.ส\.|นางสาว)\s*/,'').slice(0,2);
+  document.getElementById('avatar').textContent = init;
+  closeModal();
+}
+
+/* ===== DISEASE / TAG ===== */
+function pickD(el){
+  document.querySelectorAll('.dcard').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on'); curD=el.dataset.key; curTag='';
+  document.getElementById('tags-wrap').style.display='block';
+  document.getElementById('tags-row').innerHTML =
+    DX[curD].map(t=>`<span class="tag" onclick="pickTag(this,'${t}')">${t}</span>`).join('');
+}
+function pickTag(el,t){
+  document.querySelectorAll('.tag').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on'); curTag=t;
+}
+
+/* ===== AUTOCOMPLETE ===== */
+function getNames(){ try{ return JSON.parse(localStorage.getItem('tp_patients')||'[]'); }catch{ return []; } }
+function saveName(n){ let a=getNames(); a=[n,...a.filter(x=>x!==n)].slice(0,60); localStorage.setItem('tp_patients',JSON.stringify(a)); }
+
+function acInput(){
+  const val=document.getElementById('f-name').value.trim().toLowerCase();
+  const matches=val ? getNames().filter(n=>n.toLowerCase().includes(val)) : getNames().slice(0,8);
+  const drop=document.getElementById('ac-drop');
+  if(!matches.length){ drop.classList.remove('show'); return; }
+  acHiIdx=-1;
+  drop.innerHTML=matches.map(n=>`<div class="ac-item" onmousedown="acPick('${n.replace(/'/g,"\\'")}')">${n}</div>`).join('');
+  drop.classList.add('show');
+}
+function acPick(n){ document.getElementById('f-name').value=n; acHide(); }
+function acHide(){ document.getElementById('ac-drop').classList.remove('show'); acHiIdx=-1; }
+function acKey(e){
+  const drop=document.getElementById('ac-drop');
+  const items=drop.querySelectorAll('.ac-item');
+  if(!drop.classList.contains('show')||!items.length) return;
+  if(e.key==='ArrowDown'){ e.preventDefault(); acHiIdx=Math.min(acHiIdx+1,items.length-1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); acHiIdx=Math.max(acHiIdx-1,0); }
+  else if(e.key==='Enter'&&acHiIdx>=0){ e.preventDefault(); acPick(items[acHiIdx].textContent.trim()); return; }
+  else if(e.key==='Escape'){ acHide(); return; }
+  items.forEach((el,i)=>el.classList.toggle('hi',i===acHiIdx));
+}
+
+/* ===== TOAST ===== */
+function toast(msg,err=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(err?' err':'');
+  setTimeout(()=>el.className='toast',3000);
+}
+
+/* ===== SAVE ===== */
+async function saveRec(){
+  const name=document.getElementById('f-name').value.trim();
+  const date=document.getElementById('f-date').value;
+  if(!curPt){ toast('กรุณาเลือกชื่อของคุณก่อน',true); return; }
+  if(!name){ toast('กรุณาพิมพ์ชื่อผู้ป่วย',true); return; }
+  if(!date){ toast('กรุณาเลือกวันที่',true); return; }
+  if(!curD){ toast('กรุณาเลือกกลุ่มโรค',true); return; }
+  if(!curTag){ toast('กรุณาเลือกการวินิจฉัย',true); return; }
+
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...';
+
+  const payload={
+    id:Date.now().toString(), date, pt:curPt,
+    area:PT_AREA[curPt]||'', name,
+    disease:DL[curD], dx:curTag
+  };
+  try{
+    await fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    toast('✓ บันทึก '+name+' เรียบร้อยแล้ว');
+    saveName(name);
+    document.getElementById('f-name').value='';
+    document.querySelectorAll('.dcard').forEach(c=>c.classList.remove('on'));
+    document.getElementById('tags-wrap').style.display='none';
+    curD=''; curTag='';
+  }catch(e){ toast('เกิดข้อผิดพลาด',true); }
+  btn.disabled=false; btn.textContent='⚡ บันทึกข้อมูล';
+}
+
+/* ===== EXPORT / LOAD ===== */
+async function loadExport(){
+  const body=document.getElementById('ex-body');
+  const statsEl=document.getElementById('ex-stats');
+  body.innerHTML='<div class="card loading">⏳ กำลังโหลดข้อมูลจาก Google Sheets...</div>';
+  statsEl.style.display='none';
+
+  let rows=[];
+  try{
+    const res=await fetch(API+'?t='+Date.now());
+    const data=await res.json();
+    rows=data.rows||[];
+  }catch(e){
+    body.innerHTML='<div class="card empty">❌ โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่</div>';
+    return;
+  }
+
+  // Filter
+  const from=document.getElementById('ex-from').value;
+  const to=document.getElementById('ex-to').value;
+  const fArea=document.getElementById('ex-area').value;
+  const fPt=document.getElementById('ex-pt').value;
+  const fD=document.getElementById('ex-d').value;
+  const dlRev={}; Object.entries(DL).forEach(([k,v])=>dlRev[v]=k);
+
+  const filtered=rows.filter(r=>{
+    const d=r['วันที่บันทึก']?new Date(r['วันที่บันทึก']).toISOString().slice(0,10):'';
+    return (!from||d>=from) && (!to||d<=to) &&
+           (!fArea||(r['พื้นที่']||PT_AREA[r['นักกายภาพ']]||'')=== fArea) &&
+           (!fPt||r['นักกายภาพ']===fPt) &&
+           (!fD||dlRev[r['กลุ่มโรค']]===fD);
+  });
+
+  // Update PDF sub
+  const thFrom=from?thDate(from):'ทั้งหมด';
+  const thTo=to?thDate(to):'';
+  document.getElementById('pdf-sub').textContent=
+    `ช่วงเวลา: ${thFrom}${thTo?' — '+thTo:''} | พบ ${filtered.length} ราย | พิมพ์: ${thDate(today())}`;
+
+  if(!filtered.length){
+    body.innerHTML='<div class="card empty">ไม่พบข้อมูลในช่วงเวลาที่เลือก</div>';
+    statsEl.style.display='none'; return;
+  }
+
+  // Stats
+  const cnt={stroke:0,brain:0,spine:0,hip:0};
+  filtered.forEach(r=>{ const k=dlRev[r['กลุ่มโรค']]; if(k) cnt[k]++; });
+  statsEl.style.display='grid';
+  statsEl.innerHTML=
+    `<div class="stat"><div class="n">${filtered.length}</div><div class="l">ทั้งหมด</div></div>`+
+    Object.entries(cnt).map(([k,v])=>
+      `<div class="stat"><div class="n">${v}</div><div class="l">${DL[k]}</div></div>`
+    ).join('');
+
+  // Group by area
+  const byArea={};
+  AREAS.forEach(a=>byArea[a]=[]);
+  filtered.forEach(r=>{
+    const a=r['พื้นที่']||PT_AREA[r['นักกายภาพ']]||'อื่นๆ';
+    if(!byArea[a]) byArea[a]=[];
+    byArea[a].push(r);
+  });
+
+  let html='';
+  AREAS.forEach(area=>{
+    const aRows=byArea[area];
+    if(!aRows||!aRows.length) return;
+    html+=`<div class="area-section">
+      <div class="area-title card" style="margin-bottom:8px;padding:10px 16px;font-size:14px;font-weight:600;color:#1a3a2a;border-left:4px solid #1a3a2a">
+        📍 อำเภอ${area} <span style="font-weight:400;color:#888;font-size:13px">(${aRows.length} ราย)</span>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px">
+        <div class="tbl-wrap" style="border:none">
+          <div class="tbl-head">
+            <div class="th">ชื่อ-นามสกุล</div>
+            <div class="th">กลุ่มโรค</div>
+            <div class="th">การวินิจฉัย</div>
+            <div class="th">นักกายภาพ / วันที่</div>
+          </div>
+          ${aRows.map((r,i)=>{
+            const dk=dlRev[r['กลุ่มโรค']]||'stroke';
+            const d=r['วันที่บันทึก']?thDate(new Date(r['วันที่บันทึก']).toISOString().slice(0,10)):'—';
+            return `<div class="tbl-row" style="${i%2===1?'background:#faf9f7':''}">
+              <div class="td td-name">${r['ชื่อ-นามสกุล']||'—'}</div>
+              <div class="td"><span class="bdg ${DC[dk]}">${r['กลุ่มโรค']||'—'}</span></div>
+              <div class="td">${r['การวินิจฉัย']||'—'}</div>
+              <div class="td"><div>${r['นักกายภาพ']||'—'}</div><div class="td-sub">${d}</div></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>`;
+  });
+  body.innerHTML=html;
+}
+
+function doPrint(){
+  if(!document.getElementById('ex-body').innerHTML||
+     document.getElementById('ex-body').innerHTML.includes('loading')){
+    loadExport().then(()=>setTimeout(window.print,800));
+  } else {
+    window.print();
+  }
+}
+
+/* ===== UTIL ===== */
+function thDate(d){
+  if(!d) return '';
+  const [y,m,day]=d.split('-');
+  const mo=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][+m];
+  return `${+day} ${mo} ${+y+543}`;
+}
+
+init();
+</script>
+</body>
+</html>
